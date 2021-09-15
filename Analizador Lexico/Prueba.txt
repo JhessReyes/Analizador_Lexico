@@ -1,0 +1,8 @@
+programa sumar() {
+     int a;
+     a=15; //Esto es un comentario
+     double Num2 = 3.28;
+     String str = "Hola Mundo";
+     char c = 'a';
+     cout<<str<<endl;
+}
