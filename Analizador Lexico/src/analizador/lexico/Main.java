@@ -593,17 +593,22 @@ public final class Main extends javax.swing.JFrame {
                             &&Simbo.get(i).getTipo().isBlank()&&!Simbo.get(in).getTipo().isBlank()
                             &&Simbo.get(i).getScope()>=Declarados.get(in).getScope()
                             ){
+                    if(STATUSPORT(Simbo.get(i).getDecla())) Q ="ASM";
                     if(Numero(Simbo.get(i).getDecla()))Q ="int";
                     if(Double(Simbo.get(i).getDecla()))Q ="double";
                     if(Caracteres(Simbo.get(i).getDecla())) Q ="String";
                     if(Char(Simbo.get(i).getDecla())) Q ="char";
+                    
                     if(Declarado.contains(Simbo.get(i).getDecla())){
                         int in2 = Declarado.indexOf(Simbo.get(i).getDecla());
                         Q = Declarados.get(in2).getTipo();
                     }	
                     if(Declarados.get(in).getTipo().equals("double")&&Q.equals("int")){
-                    }else{
-                    if(!Declarados.get(in).getTipo().equals(Q))
+                    }else if(Declarados.get(in).getTipo().equals("ASM")&&Q.equals("int")){
+                    }
+                    else{
+                    
+                        if(!Declarados.get(in).getTipo().equals(Q))
    
 //                        JOptionPane.showMessageDialog(null,"Existe un conflicto con la Variable \""+Simbo.get(i).getIde()+"\" de tipo \""+
 //                                            Declarados.get(in).getTipo()+ "\" ESTA DECLARADA COMO TIPO \""+Q+ "\"","ERROR",0);
@@ -620,9 +625,11 @@ public final class Main extends javax.swing.JFrame {
                     if(Double(Simbo.get(i).getDecla()))P ="double";
                     if(Caracteres(Simbo.get(i).getDecla())) P ="String";
                     if(Char(Simbo.get(i).getDecla())) P ="char";
-                    
+                    if(STATUSPORT(Simbo.get(i).getDecla())) P ="ASM";
                     if(Declarados.get(in).getTipo().equals("double")&&Q.equals("int")){
-                    }else{
+                    }else if(Declarados.get(in).getTipo().equals("ASM")&&Q.equals("int")){
+                    }
+                    else{
                     if(!Simbo.get(i).getTipo().equals(P))
 //                        JOptionPane.showMessageDialog(null,"Existe un conflicto con la Variable \""+Simbo.get(i).getIde()+"\" de tipo \""+
 //                                                            Simbo.get(i).getTipo()+ "\" ESTA DECLARADA COMO TIPO \""+P+ "\"","ERROR",0);
@@ -957,22 +964,16 @@ public final class Main extends javax.swing.JFrame {
     
     public void OptSeparadorPuertos(){
          for(int i = 1; i < Separador.size();i++) {
-            String num = "PORTA";
+            String num = "PORT(A|B)";
+            String asig = "[0-7]";
             if(Separador.size()>0){
-                if(!Separador.get(i-1).isEmpty()&&Separador.get(i).equals(".")&&Separador.get(i-1).matches(num)&&!Separador.get(i+1).isEmpty()){
+                if(!Separador.get(i-1).isEmpty()&&Separador.get(i).equals(".")&&Separador.get(i-1).matches(num)){
+                    if(!Separador.get(i+1).isEmpty()&&Separador.get(i+1).matches(asig)){
                     Separador.set(i-1, Separador.get(i-1)+"."+Separador.get(i+1));
-//                    Separador.remove(".");
-
-                    Separador.remove(i+1);                 
+                    Separador.remove(i+1);
+                    Separador.remove(i);
+                }else Output.add(new Output("Error Crítico", "PUERTO FUERA DE RANGO"));
             }
-                System.out.println(Separador.size()+" "+Separador.get(i)+" "+i);
-                System.out.println(Separador.size()+" "+Separador.get(0)+" "+i);
-                System.out.println(Separador.size()+" "+Separador.get(1)+" "+i);
-
-//                if("-".equals(Separador.get(i-2))){
-//                    Separador.set(i-1, "-"+Separador.get(i-1));
-//                    Separador.remove("-");
-//                }
             }
          }
     }
@@ -1026,26 +1027,28 @@ public final class Main extends javax.swing.JFrame {
         String res="";
         for(Tablas tb:Lista){
             if(x<(Separador.size()+1)){
-                if(Separador.get(x+1).equals("=")){
-                    int h=(x+2);
-                    while(!";".equals(Separador.get(h))){
-                        res += Separador.get(h);
-                        h++;
+                try{
+                    if(Separador.get(x+1).equals("=")){
+                        int h=(x+2);
+                        while(!";".equals(Separador.get(h))){
+                            res += Separador.get(h);
+                            h++;
+                        }
+                        break;
+    //                   res = Separador.get(x+2);
                     }
-                    break;
-//                   res = Separador.get(x+2);
-                }            
+                }catch(Exception e){ Output.add(new Output("Error Crítico",e+" "+"FALTA TERMINAL ;")); break;}
             }
         }
         return res;
     }
 
     public boolean PORT(String lexema) {
-    String regexIde = "(PORT(A|B)([.]([0-7]|\\[[0-7][-][0-7]\\]))?)"; //EXPRESION REGULAR PARA PUERTOS
+    String regexIde = "(PORT(A|B)([.]([0-7]))?)|(TRIS(A|B))"; //EXPRESION REGULAR PARA PUERTOS
     return lexema.matches(regexIde);
     }
-    public boolean NumPORT(String lexema){
-    String regexN = "([0-7]|\\[[0-7][-][0-7]\\])"; //EXPRESION REGULAR PARA PUERTOS        
+    public boolean STATUSPORT(String lexema){
+    String regexN = "0|1"; //EXPRESION REGULAR PARA PUERTOS        
     return lexema.matches(regexN);
     }
     
@@ -1127,7 +1130,7 @@ public final class Main extends javax.swing.JFrame {
             }else if(ide(x).equals("char")){ {STATIC+=1; dimension = Declaradoen(x).length()-2;}
             }else if(ide(x).equals("double")){ STATIC+=8;
             }else if(ide(x).equals("String")){STATIC+=Declaradoen(x).length(); dimension = Declaradoen(x).length();
-            }else if(ide(x).isBlank()) STATIC+=1;
+            }else if(ide(x).isBlank() && PORT(Separador.get(x))){ P="ASM"; STATIC+=1;}
             Simbo.add(new Simbolos(Separador.get(x),"STATIC+"+(STATIC),P,Declaradoen(x),dimension,sp));            
         } else if(ide(x).equals("")&&x<Separador.size()&&Separador.get(x+1).equals(";"));
             //JOptionPane.showMessageDialog(null,"El Identificador \""+Separador.get(x)+"\" NO ES UNA DECLARACIÓN","ERROR",0); 
