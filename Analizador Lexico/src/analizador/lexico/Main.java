@@ -499,6 +499,13 @@ public final class Main extends javax.swing.JFrame {
                TOut.setText(o);
             }
         }
+        
+        String nombre="unknown";
+        if(Simbo.contains("programa")){
+            int pos = Simbo.indexOf("programa");
+               nombre = Simbo.get(pos).getIde();
+        }
+        CodigoHEX(nombre);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void txlexemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txlexemaActionPerformed
@@ -1042,7 +1049,16 @@ public final class Main extends javax.swing.JFrame {
         }
         return res;
     }
-
+    public boolean Devices(int x) {
+        boolean status = false;
+        if(Separador.size()>0){
+            if (Separador.get(x-1).contentEquals("Device")){
+                status = true;
+            }
+        }
+    return status;
+    }
+    
     public boolean PORT(String lexema) {
     String regexIde = "(PORT(A|B)([.]([0-7]))?)|(TRIS(A|B))"; //EXPRESION REGULAR PARA PUERTOS
     return lexema.matches(regexIde);
@@ -1088,7 +1104,10 @@ public final class Main extends javax.swing.JFrame {
         for(int x=0;x<Separador.size();x++) {
                 WordR(x);
                 if(WR!=true){
-                    if(PORT(Separador.get(x))){
+                    if(Devices(x)){
+                    Lexemas.add("< "+Separador.get(x)+" , "+"Devices >");
+                    TabSimb(x);
+                }else if(PORT(Separador.get(x))){
                     Lexemas.add("< "+Separador.get(x)+" , "+"PUERTOS >");
                     TabSimb(x);
                 }else if(Identificador(Separador.get(x))){
@@ -1221,6 +1240,33 @@ public final class Main extends javax.swing.JFrame {
 //            contsp++;
 //            }
 //        }
+    }
+    File HEX;
+    public void CodigoHEX(String nombre){
+        String codigo="";  
+        HEX = new File(nombre+".HEX");
+        codigo+=":0400000001280614B9\n";
+          if(Simbo.contains("Device")){
+            int pos = Simbo.indexOf("Device");
+            if(Simbo.get(pos).getIde().contentEquals("16F628A")){
+                codigo+=":02400E00223F4F\n";        
+            } 
+          }
+       codigo+=":00000001FF";
+       ArchivoHEX(codigo,HEX);
+    }
+    
+    public void ArchivoHEX(String texto, File a){
+        String cadena=texto;
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(a));
+            bw.write("");
+            try (FileWriter FlWr = new FileWriter(a, true)) {
+                FlWr.write(cadena);
+            }
+        } catch (IOException e) {
+            System.out.println("Error");
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

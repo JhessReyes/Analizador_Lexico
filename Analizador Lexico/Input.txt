@@ -1,1 +1,3 @@
-TRISB.1=0;
+programa Ej;
+Device 16F628A;
+PORTB.0=1;

@@ -37,3 +37,4 @@ programa	RW
 IF	CONDIC
 if	CONDICIONAL
 endl	SALTO_LINEA
+Device	DEVICE
