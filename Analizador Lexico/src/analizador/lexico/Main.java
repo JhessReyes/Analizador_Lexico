@@ -15,6 +15,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -42,7 +44,9 @@ public final class Main extends javax.swing.JFrame {
     public Main() {
         initComponents();
         this.setLocationRelativeTo(null);
-        AgregarDatos(Simbolos);
+        AgregarDatos(Simbolos,Lista);
+        AgregarDatos(Registro,Reg);
+
         jButton1.setEnabled(false);
         model = new DefaultTableModel();
         
@@ -67,6 +71,7 @@ public final class Main extends javax.swing.JFrame {
     File Seleccionado;
     File Input = new File("Input.txt");
     File Simbolos = new File("Simbolos.txt");
+    File Registro = new File("Registro.txt");
     File TextoPrueba = new File("Prueba.txt");
     /**
      * This method is called from within the constructor to initialize the form.
@@ -500,10 +505,14 @@ public final class Main extends javax.swing.JFrame {
             }
         }
         
-        String nombre="unknown";
-        if(Simbo.contains("programa")){
-            int pos = Simbo.indexOf("programa");
-               nombre = Simbo.get(pos).getIde();
+        String nombre="UNKNOWN";
+        for(int i=0; i<32 ;i++){
+        System.out.println(i +" -> " +Integer.toHexString(i));            
+        }
+        for(Simbolos s:Simbo){
+            if(s.getTipo().contentEquals("programa")){
+                nombre = s.getIde().toUpperCase();
+            }
         }
         CodigoHEX(nombre);
     }//GEN-LAST:event_jButton1ActionPerformed
@@ -560,7 +569,8 @@ public final class Main extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton4ActionPerformed
     ArrayList<String> Separador = new ArrayList<>();
     ArrayList<String> Lexemas = new ArrayList<>();
-    ArrayList<Tablas> Lista = new ArrayList<>();  
+    ArrayList<Tablas> Lista = new ArrayList<>();
+    ArrayList<Tablas> Reg = new ArrayList<>();
     ArrayList<Simbolos> Simbo = new ArrayList<>();
     ArrayList<Output> Output = new ArrayList<>();
     
@@ -918,7 +928,8 @@ public final class Main extends javax.swing.JFrame {
         //Juntar(1);
     }
 
-    public void AgregarDatos(File f){
+    public void AgregarDatos(File f,ArrayList<Tablas> List){
+        List.clear();
         String a= "";
         String text="";
         String token="";
@@ -936,7 +947,7 @@ public final class Main extends javax.swing.JFrame {
                         text="";
                     }
                  }
-                 Lista.add(new Tablas(token,text));
+                 List.add(new Tablas(token,text));
                  text="";
             }
             token="";
@@ -969,6 +980,7 @@ public final class Main extends javax.swing.JFrame {
          }
     }
     
+    ArrayList<Registro> Regi = new ArrayList<>();
     public void OptSeparadorPuertos(){
          for(int i = 1; i < Separador.size();i++) {
             String num = "PORT(A|B)";
@@ -977,8 +989,26 @@ public final class Main extends javax.swing.JFrame {
                 if(!Separador.get(i-1).isEmpty()&&Separador.get(i).equals(".")&&Separador.get(i-1).matches(num)){
                     if(!Separador.get(i+1).isEmpty()&&Separador.get(i+1).matches(asig)){
                     Separador.set(i-1, Separador.get(i-1)+"."+Separador.get(i+1));
+//                    Set<Registro> set = new HashSet<>(Regi);
+//                    Regi.clear();
+//                    Regi.addAll(set);
+                    for(Tablas re: Reg){
+                        if(Regi.size()>0){
+                            for(Registro r: Regi){
+                                if(re.getToken().contentEquals("."+Separador.get(i+1))&& !r.getRegistro().contains(Separador.get(i-1))){
+                                    Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+                                }                        
+                            }                            
+                        }else{
+                            if(re.getToken().contentEquals("."+Separador.get(i+1))){
+                                    Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+                            }
+                        }
+                    }
+                    
                     Separador.remove(i+1);
                     Separador.remove(i);
+                    
                 }else Output.add(new Output("Error Crítico", "PUERTO FUERA DE RANGO"));
             }
             }
@@ -1245,7 +1275,8 @@ public final class Main extends javax.swing.JFrame {
     public void CodigoHEX(String nombre){
         String codigo="";  
         HEX = new File(nombre+".HEX");
-        codigo+=":0400000001280614B9\n";
+        codigo+=":0400 0000 0128 06 14 B9\n";
+        codigo+=ArchivoHEX();
           if(Simbo.contains("Device")){
             int pos = Simbo.indexOf("Device");
             if(Simbo.get(pos).getIde().contentEquals("16F628A")){
@@ -1253,20 +1284,56 @@ public final class Main extends javax.swing.JFrame {
             } 
           }
        codigo+=":00000001FF";
-       ArchivoHEX(codigo,HEX);
+       guardar(codigo,HEX);
     }
     
-    public void ArchivoHEX(String texto, File a){
-        String cadena=texto;
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(a));
-            bw.write("");
-            try (FileWriter FlWr = new FileWriter(a, true)) {
-                FlWr.write(cadena);
+    public String ArchivoHEX(){
+        String cadena="0128";
+        String linea="";
+        String text="0128";
+        int cnt = 0;
+        System.out.println(Regi.size());
+        System.out.println(Simbo.size());
+
+//        for(Simbolos s:Simbo){
+//            for(Registro r: Regi){
+//                if(s.getIde().contains(r.getRegistro())){
+//                    if(cadena.length()>31){
+//                        linea= cadena;
+//                        text+="\n";
+//                        cadena="";
+//                    }else{
+//                        if(PORT(s.getIde()) && s.getDecla().matches("0|1")){
+//                            if(s.getDecla().equals("1")){
+//                                cadena+=r.getCodigo()+"14";
+//                                text+=r.getCodigo()+"14";
+//                            }else {cadena+=r.getCodigo()+"01"; text+=r.getCodigo()+"01";}                            
+//                        }else {cadena+=r.getCodigo(); text+=r.getCodigo();}
+//                    }
+//                }
+//            }
+//        }
+        for(int i =0;i < Simbo.size(); i++){
+            for(Registro r: Regi){
+                
+                if(Simbo.get(i).getIde().contentEquals(r.getRegistro())){
+                    System.out.println(i+" "+r.getRegistro());
+                    if(cadena.length()>31){
+                        linea= cadena+"B9";
+                        text+="\n";
+                        cadena="";
+                    }else{
+                        if(PORT(Simbo.get(i).getIde()) && Simbo.get(i).getDecla().matches("0|1")){
+                            if(Simbo.get(i).getDecla().equals("1")){
+                                cadena+=r.getCodigo()+"14";
+                                text+=r.getCodigo()+"14";
+                            }else {cadena+=r.getCodigo()+"01"; text+=r.getCodigo()+"01";}                            
+                        }else {cadena+=r.getCodigo(); text+=r.getCodigo();}
+                    }
+                }
             }
-        } catch (IOException e) {
-            System.out.println("Error");
         }
+        return text+"\n";
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

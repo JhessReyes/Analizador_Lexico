@@ -1,3 +1,9 @@
-programa Ej;
-Device 16F628A;
+programa Ejem;
 PORTB.0=1;
+PORTB.0=0;
+PORTB.0=1;
+PORTB.0=0;
+PORTB.0=1;
+PORTB.0=0;
+PORTB.0=1;
+PORTB.0=0;
