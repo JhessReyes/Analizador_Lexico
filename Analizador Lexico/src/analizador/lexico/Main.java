@@ -16,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -471,6 +472,8 @@ public final class Main extends javax.swing.JFrame {
     }
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
+        Regi.clear();
+        RegNoR.clear();
         Output.clear();
         TOut.setText("");
         Separador.clear();
@@ -506,9 +509,6 @@ public final class Main extends javax.swing.JFrame {
         }
         
         String nombre="UNKNOWN";
-        for(int i=0; i<32 ;i++){
-        System.out.println(i +" -> " +Integer.toHexString(i));            
-        }
         for(Simbolos s:Simbo){
             if(s.getTipo().contentEquals("programa")){
                 nombre = s.getIde().toUpperCase();
@@ -981,6 +981,7 @@ public final class Main extends javax.swing.JFrame {
     }
     
     ArrayList<Registro> Regi = new ArrayList<>();
+    ArrayList<String> RegNoR = new ArrayList<>();
     public void OptSeparadorPuertos(){
          for(int i = 1; i < Separador.size();i++) {
             String num = "PORT(A|B)";
@@ -992,17 +993,43 @@ public final class Main extends javax.swing.JFrame {
 //                    Set<Registro> set = new HashSet<>(Regi);
 //                    Regi.clear();
 //                    Regi.addAll(set);
+                    System.out.println(Reg.size()+ " -");
                     for(Tablas re: Reg){
-                        if(Regi.size()>0){
+                        if(!RegNoR.isEmpty()){
                             for(Registro r: Regi){
-                                if(re.getToken().contentEquals("."+Separador.get(i+1))&& !r.getRegistro().contains(Separador.get(i-1))){
-                                    Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
-                                }                        
+                                String mat = "PORTA[.][0-7]";
+                                if(Separador.get(i-1).matches(mat)){
+                                    if(re.getToken().contentEquals("A."+(Integer.valueOf(Separador.get(i+1))%2))&& !RegNoR.contains(Separador.get(i-1))){
+                                        Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+                                        RegNoR.add(Separador.get(i-1));
+                                        break;
+                                    }
+                                }else{
+                                    if(re.getToken().contentEquals("B."+(Integer.valueOf(Separador.get(i+1))%2))&& !RegNoR.contains(Separador.get(i-1))){
+                                        Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+                                        RegNoR.add(Separador.get(i-1));
+                                        break;
+                                    }
+                                }                       
                             }                            
                         }else{
-                            if(re.getToken().contentEquals("."+Separador.get(i+1))){
-                                    Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
-                            }
+                            String mat = "PORTA[.][0-7]";
+                                System.out.println(Separador.get(i-1));
+                                if(Separador.get(i-1).matches(mat)){
+                                    if(re.getToken().contentEquals("A."+(Integer.valueOf(Separador.get(i+1))%2))){
+                                        Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+                                        RegNoR.add(Separador.get(i-1));
+                                    }
+                                }else{
+                                    if(re.getToken().contentEquals("B."+(Integer.valueOf(Separador.get(i+1))%2))&& !RegNoR.contains(Separador.get(i-1))){
+                                        Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+                                        RegNoR.add(Separador.get(i-1));
+                                        break;
+                                    }
+                                }
+//                            if(re.getToken().contentEquals("."+Separador.get(i+1))){
+//                                    Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
+//                            }
                         }
                     }
                     
@@ -1287,53 +1314,98 @@ public final class Main extends javax.swing.JFrame {
        guardar(codigo,HEX);
     }
     
+    
     public String ArchivoHEX(){
+        GeneradorCodigoPuertos();
+        String conteo = "0000";
         String cadena="0128";
-        String linea="";
-        String text="0128";
+        String linea="0000";
+        String eByte="00";
+        String eByte1="00";
+        String text="";
         int cnt = 0;
+        int cntln = 0;
         System.out.println(Regi.size());
         System.out.println(Simbo.size());
+        
+        for(int i =0;i < Regi.size(); i++){
+            System.out.println(i+" -> "+Regi.get(i).getRegistro());
 
-//        for(Simbolos s:Simbo){
-//            for(Registro r: Regi){
-//                if(s.getIde().contains(r.getRegistro())){
-//                    if(cadena.length()>31){
-//                        linea= cadena;
-//                        text+="\n";
-//                        cadena="";
-//                    }else{
-//                        if(PORT(s.getIde()) && s.getDecla().matches("0|1")){
-//                            if(s.getDecla().equals("1")){
-//                                cadena+=r.getCodigo()+"14";
-//                                text+=r.getCodigo()+"14";
-//                            }else {cadena+=r.getCodigo()+"01"; text+=r.getCodigo()+"01";}                            
-//                        }else {cadena+=r.getCodigo(); text+=r.getCodigo();}
-//                    }
-//                }
-//            }
-//        }
+        }
+        
+        boolean salto=false;
+        int ListaSimbolos = Simbo.size()-1;
+        System.out.println(Codigos.size()+"-11");
         for(int i =0;i < Simbo.size(); i++){
-            for(Registro r: Regi){
-                
-                if(Simbo.get(i).getIde().contentEquals(r.getRegistro())){
+            for(Registro r: Codigos){
+                if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro())){
                     System.out.println(i+" "+r.getRegistro());
-                    if(cadena.length()>31){
-                        linea= cadena+"B9";
-                        text+="\n";
-                        cadena="";
-                    }else{
-                        if(PORT(Simbo.get(i).getIde()) && Simbo.get(i).getDecla().matches("0|1")){
-                            if(Simbo.get(i).getDecla().equals("1")){
-                                cadena+=r.getCodigo()+"14";
-                                text+=r.getCodigo()+"14";
-                            }else {cadena+=r.getCodigo()+"01"; text+=r.getCodigo()+"01";}                            
-                        }else {cadena+=r.getCodigo(); text+=r.getCodigo();}
+                    
+                    linea = Integer.toHexString(cntln).toUpperCase();
+                    if(cadena.length()==32){
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00 "+(linea.length()<=1?"0":"")+linea+"00"+cadena+"B9\n";
+                        text=conteo+text;
+//                        text+="B9\n"+r.getCodigo();
+                        cadena=r.getCodigo();
+                        cntln++;
+                        salto=true;
+                     }else{
+                         cadena+=r.getCodigo();
+                     }
+                    cnt = cadena.length()/2;
+                    conteo= Integer.toHexString(cnt).toUpperCase();
+                    linea = Integer.toHexString(cntln).toUpperCase(); 
+                     if(ListaSimbolos==i){
+                         if(conteo.length()==1) eByte = "0"; else eByte = "";
+                         
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00 "+(linea.length()<=1?"0":"")+linea+"00"+cadena;
+                        if(salto){
+                            text+=conteo;                        
+                        }else text=conteo;
+                    }
+
+                }
+            }
+        }
+        //if(salto==false) text+="\n";
+        return text+"\n";
+    }
+    
+    ArrayList<Registro> Codigos;
+    ArrayList<String> CodeHX;
+    public void GeneradorCodigoPuertos(){
+    Codigos = new ArrayList<>();
+    CodeHX = new ArrayList<>();
+    for (Tablas re : Reg) {
+        for (Simbolos s : Simbo) {
+            for (Registro r : Regi) {
+                if (s.getIde().contentEquals(r.getRegistro())) {
+                        if (re.getToken().contentEquals(s.getDecla() + "." + s.getIde().substring(s.getIde().length() - 1, s.getIde().length()))) {
+                            //if(r.getCodigo().length()<4) r.setCodigo(r.getCodigo() + re.getLexema());
+//                            if(r.getRegistro().hashCode())r.getRegistro(),r.getCodigo()+re.getLexema()
+                        Registro Regis = new Registro(s.getDecla()+r.getRegistro(),r.getCodigo()+re.getLexema());
+                        if(CodeHX.isEmpty()){
+                                CodeHX.add(Regis.getCodigo());
+                                Codigos.add(Regis);
+                        }else{
+                            if(Regis.getCodigo().length()>2){
+                                if(!CodeHX.contains(Regis.getCodigo())){
+                                    CodeHX.add(Regis.getCodigo());
+                                    Codigos.add(Regis);                                   
+                                    break;
+                                }                          
+                            }
+                        }
+                            System.out.println(r.getRegistro()+"="+s.getDecla()+"->" + r.getCodigo()+re.getLexema()+"->"+r.getRegistro().hashCode()+" "+r.getCodigo().hashCode());
+                        }
                     }
                 }
             }
         }
-        return text+"\n";
+
+        for(Registro c:Codigos){
+             System.out.println(c.getRegistro()+"->>"+c.getCodigo());
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
