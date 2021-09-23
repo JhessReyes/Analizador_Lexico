@@ -1108,7 +1108,7 @@ public final class Main extends javax.swing.JFrame {
     }
     public boolean Devices(int x) {
         boolean status = false;
-        if(Separador.size()>0){
+        if(Separador.size()>0&&x>0){
             if (Separador.get(x-1).contentEquals("Device")){
                 status = true;
             }
@@ -1302,14 +1302,20 @@ public final class Main extends javax.swing.JFrame {
     public void CodigoHEX(String nombre){
         String codigo="";  
         HEX = new File(nombre+".HEX");
-        codigo+=":0400 0000 0128 06 14 B9\n";
         codigo+=ArchivoHEX();
-          if(Simbo.contains("Device")){
-            int pos = Simbo.indexOf("Device");
-            if(Simbo.get(pos).getIde().contentEquals("16F628A")){
-                codigo+=":02400E00223F4F\n";        
-            } 
-          }
+        for(Simbolos s:Simbo){
+            for(Tablas t: Reg){
+                if(t.getToken().contentEquals(s.getTipo()+s.getIde())){
+                    codigo+=":"+t.getLexema()+"\n";
+                }                
+            }
+        }
+//          if(Simbo.contains("Device")){
+//            int pos = Simbo.indexOf("Device");
+//            if(Simbo.get(pos).getIde().contentEquals("16F628A")){
+//                codigo+=":02400E00223F4F\n";        
+//            } 
+//          }
        codigo+=":00000001FF";
        guardar(codigo,HEX);
     }
@@ -1343,9 +1349,8 @@ public final class Main extends javax.swing.JFrame {
                     
                     linea = Integer.toHexString(cntln).toUpperCase();
                     if(cadena.length()==32){
-                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00 "+(linea.length()<=1?"0":"")+linea+"00"+cadena+"B9\n";
-                        text=conteo+text;
-//                        text+="B9\n"+r.getCodigo();
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena+"B9\n";
+                        text+=conteo;
                         cadena=r.getCodigo();
                         cntln++;
                         salto=true;
@@ -1358,7 +1363,7 @@ public final class Main extends javax.swing.JFrame {
                      if(ListaSimbolos==i){
                          if(conteo.length()==1) eByte = "0"; else eByte = "";
                          
-                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00 "+(linea.length()<=1?"0":"")+linea+"00"+cadena;
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena;
                         if(salto){
                             text+=conteo;                        
                         }else text=conteo;

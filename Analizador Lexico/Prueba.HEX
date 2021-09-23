@@ -7,6 +7,10 @@ PORTB.0=1;
 PORTA.2=0;
 
 programa Ejemp;
+Device 16F628A;
+PORTB.0=1;
+
+programa Ejemp;
 PORTA.0=0;
 PORTB.0=1;
 PORTA.2=0;
