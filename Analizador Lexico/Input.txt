@@ -1,3 +1,5 @@
-programa Ejempl;
+
+programa Ejemp;
 Device 16F628A;
+TRISA = 0;
 PORTB.0=1;

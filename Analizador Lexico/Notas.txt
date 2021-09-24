@@ -1,0 +1,37 @@
+programa Ejemp;
+PORTA.0=0;
+PORTB.0=1;
+PORTA.2=0;
+
+programa Ejemp;
+Device 16F628A;
+PORTB.0=1;
+
+programa Ejemp;
+Device 16F628A;
+TRISA = 0;
+PORTB.0=1;
+
+programa Ejemp;
+PORTA.0=0;
+PORTB.0=1;
+PORTA.2=0;
+PORTB.7=1;
+PORTB.7=0;
+PORTA.3=0;
+PORTA.4=0;
+PORTA.4=1;
+programa Ejemp;
+PORTB.0=1;
+
+
+PORTA = 0	8501
+PORTB = 0	8601
+PORTA = 1	0130	8500
+PORTB = 1	0130	8600
+
+TRISA = 0	8316	8501
+TRISB = 0	8316	8601
+
+TRISB = 1	0130	8316	8600
+TRISA = 1	0130	8316	8500

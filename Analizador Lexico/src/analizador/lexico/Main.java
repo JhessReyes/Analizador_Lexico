@@ -15,22 +15,17 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.JTextPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
+import org.w3c.dom.Text;
 /**
  *
  * @author jhess
@@ -92,7 +87,8 @@ public final class Main extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         OPEN = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        TOut = new java.awt.TextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        OutP = new javax.swing.JTextPane();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tableRW = new javax.swing.JTable();
@@ -130,7 +126,12 @@ public final class Main extends javax.swing.JFrame {
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("ANALIZADOR");
 
+        TA2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         TA2.setEditable(false);
+        TA2.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+
+        TA1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        TA1.setFont(new java.awt.Font("Centaur", 0, 14)); // NOI18N
 
         jButton1.setBackground(new java.awt.Color(0, 255, 204));
         jButton1.setText("Analizar");
@@ -154,9 +155,9 @@ public final class Main extends javax.swing.JFrame {
             }
         });
 
-        TOut.setBackground(new java.awt.Color(102, 102, 102));
-        TOut.setEditable(false);
-        TOut.setForeground(new java.awt.Color(255, 153, 0));
+        OutP.setBackground(new java.awt.Color(0, 0, 0));
+        OutP.setContentType("text/html"); // NOI18N
+        jScrollPane3.setViewportView(OutP);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -167,9 +168,9 @@ public final class Main extends javax.swing.JFrame {
                 .addComponent(OPEN, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 90, Short.MAX_VALUE)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(60, 60, 60))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
@@ -178,7 +179,7 @@ public final class Main extends javax.swing.JFrame {
                 .addComponent(TA2, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(TOut, javax.swing.GroupLayout.PREFERRED_SIZE, 685, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane3)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -193,11 +194,10 @@ public final class Main extends javax.swing.JFrame {
                         .addComponent(jButton3)))
                 .addGap(17, 17, 17)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(TA2, javax.swing.GroupLayout.DEFAULT_SIZE, 317, Short.MAX_VALUE)
-                    .addComponent(TA1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(TA1, javax.swing.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
+                    .addComponent(TA2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(TOut, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         jTabbedPane1.addTab("Analizador", jPanel1);
@@ -475,7 +475,7 @@ public final class Main extends javax.swing.JFrame {
         Regi.clear();
         RegNoR.clear();
         Output.clear();
-        TOut.setText("");
+        OutP.setText("");
         Separador.clear();
         Lexemas.clear();
         Simbo.clear();
@@ -492,22 +492,7 @@ public final class Main extends javax.swing.JFrame {
             it += Lexemas.get(x) + "\n";
         }
         TA2.setText(it);
-        String o = "";
-        for(int x=0;x<Output.size();x++) {
-            if(Output.get(x).getTipoError().contentEquals("Error Crítico")){
-                o += Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";            
-               // TOut.setForeground(Color.red);
-                TOut.setText(o);
-                System.out.println("\033[31m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
-            }
-            if(Output.get(x).getTipoError().contentEquals("Advertencia")){
-                o += Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";            
-               // TOut.setForeground(Color.yellow);
-                System.out.println("\033[33m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
-               TOut.setText(o);
-            }
-        }
-        
+
         String nombre="UNKNOWN";
         for(Simbolos s:Simbo){
             if(s.getTipo().contentEquals("programa")){
@@ -515,6 +500,44 @@ public final class Main extends javax.swing.JFrame {
             }
         }
         CodigoHEX(nombre);
+        String o = "";
+        String res ="";
+        for(int x=0;x<Output.size();x++) {
+            if(Output.get(x).getTipoError().contentEquals("Error Crítico")){
+                o += Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";
+                String teR= "<h3 style=\"color:red;\">"+Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";
+                res+=teR;
+               // TOut.setForeground(Color.red);
+               // TOut.setText(o);
+                System.out.println("\033[31m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
+            }
+            if(Output.get(x).getTipoError().contentEquals("Advertencia")){
+                String teA= "<h3 style=\"color:yellow;\">"+Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";
+                o += Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";            
+               // TOut.setForeground(Color.yellow);
+                System.out.println("\033[33m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
+                res+=teA;
+              // TOut.setText(o);
+            }
+        }
+        
+        for(Registro re: Codigos){
+            String s = re.getRegistro().substring(1);
+            char Decla = re.getRegistro().toString().charAt(0);
+            String style = "<FONT SIZE=5 COLOR=#85C1E9>";
+            String styleO = "<FONT SIZE=5 COLOR=\"orange\">";
+            String styleA = "<FONT SIZE=5 COLOR=#76D7C4;>";
+            String styleW = "<FONT SIZE=5 COLOR=\"white\">";
+            if(s.matches("PORT(A|B)([.][0-7])?")){
+                res+=style+s+"="+Decla+": "+styleW+re.getCodigo()+"<br>";
+            }else if(s.matches("TRIS(A|B)")){
+                res+=styleO+s+"="+Decla+": "+styleW+re.getCodigo()+"<br>";
+            }else if(s.matches("Device")){
+                res+=styleA+s+"="+Decla+": "+styleW+re.getCodigo()+"<br>";
+            }
+        }
+        
+        OutP.setText(res);
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void txlexemaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txlexemaActionPerformed
@@ -688,7 +711,7 @@ public final class Main extends javax.swing.JFrame {
                     Declarado.add("");              
             }
             
-            if(!Simbo.get(i).getDecla().isBlank()||Simbo.get(i).getTipo().equals("programa")){
+            if(!Simbo.get(i).getDecla().isBlank()||Simbo.get(i).getTipo().matches("programa|Device")){
                     Inicializado.add(Simbo.get(i).getIde());
             } 
         }
@@ -705,7 +728,7 @@ public final class Main extends javax.swing.JFrame {
 //                    System.out.println("Variable "+ Simbo.get(f).getIde()+" NO INICIALIZADA");
                 Output.add(new Output("Advertencia","Variable \""+Simbo.get(f).getIde()+"\" NO INICIALIZADA"));
 
-                for(int g=0; g < Declarados.size(); g++){
+                for(int g = 0; g < Declarados.size(); g++){
                     if(Simbo.get(f).getIde().equals(Declarados.get(g).getIde())
                             &&Simbo.get(f).getTipo().isBlank()&&!Simbo.get(g).getTipo().isBlank()
                             &&Simbo.get(f).getScope()<=Declarados.get(g).getScope()
@@ -824,7 +847,7 @@ public final class Main extends javax.swing.JFrame {
     public void Abrir(File F){
     try{
             Desktop.getDesktop().open(F);
-        }catch(Exception e){
+        }catch(IOException e){
         System.out.println(e);}
     }
     
@@ -930,7 +953,7 @@ public final class Main extends javax.swing.JFrame {
 
     public void AgregarDatos(File f,ArrayList<Tablas> List){
         List.clear();
-        String a= "";
+        String a;
         String text="";
         String token="";
         try {
@@ -1349,7 +1372,7 @@ public final class Main extends javax.swing.JFrame {
                     
                     linea = Integer.toHexString(cntln).toUpperCase();
                     if(cadena.length()==32){
-                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena+"B9\n";
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena+"\n";
                         text+=conteo;
                         cadena=r.getCodigo();
                         cntln++;
@@ -1383,6 +1406,17 @@ public final class Main extends javax.swing.JFrame {
     CodeHX = new ArrayList<>();
     for (Tablas re : Reg) {
         for (Simbolos s : Simbo) {
+            if(re.getToken().contentEquals(s.getDecla()+s.getIde())){
+                if(CodeHX.isEmpty()){
+                    CodeHX.add(re.getLexema());
+                    Codigos.add(new Registro(s.getDecla()+s.getIde(),re.getLexema()));
+                }else{
+                    if(!CodeHX.contains(re.getLexema())){
+                        CodeHX.add(re.getLexema());
+                        Codigos.add(new Registro(s.getDecla()+s.getIde(),re.getLexema()));
+                    }    
+                }
+            }
             for (Registro r : Regi) {
                 if (s.getIde().contentEquals(r.getRegistro())) {
                         if (re.getToken().contentEquals(s.getDecla() + "." + s.getIde().substring(s.getIde().length() - 1, s.getIde().length()))) {
@@ -1401,7 +1435,7 @@ public final class Main extends javax.swing.JFrame {
                                 }                          
                             }
                         }
-                            System.out.println(r.getRegistro()+"="+s.getDecla()+"->" + r.getCodigo()+re.getLexema()+"->"+r.getRegistro().hashCode()+" "+r.getCodigo().hashCode());
+                            //System.out.println(r.getRegistro()+"="+s.getDecla()+"->" + r.getCodigo()+re.getLexema()+"->"+r.getRegistro().hashCode()+" "+r.getCodigo().hashCode());
                         }
                     }
                 }
@@ -1418,9 +1452,9 @@ public final class Main extends javax.swing.JFrame {
     private javax.swing.JButton JBEL;
     private javax.swing.JButton JBV;
     private javax.swing.JButton OPEN;
+    private javax.swing.JTextPane OutP;
     private java.awt.TextArea TA1;
     private java.awt.TextArea TA2;
-    private java.awt.TextArea TOut;
     private javax.swing.JTable TableSim;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
@@ -1437,6 +1471,7 @@ public final class Main extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable tableRW;
     private javax.swing.JTextField txlexema;
