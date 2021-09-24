@@ -505,17 +505,17 @@ public final class Main extends javax.swing.JFrame {
         for(int x=0;x<Output.size();x++) {
             if(Output.get(x).getTipoError().contentEquals("Error Crítico")){
                 o += Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";
-                String teR= "<h3 style=\"color:red;\">"+Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";
+                String teR= "<FONT SIZE=5 COLOR=\"red\">"+Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "<br>";
                 res+=teR;
                // TOut.setForeground(Color.red);
                // TOut.setText(o);
-                System.out.println("\033[31m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
+//                System.out.println("\033[31m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
             }
             if(Output.get(x).getTipoError().contentEquals("Advertencia")){
-                String teA= "<h3 style=\"color:yellow;\">"+Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";
+                String teA= "<FONT SIZE=5 COLOR=\"yellow\">"+Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "<br>";
                 o += Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n";            
                // TOut.setForeground(Color.yellow);
-                System.out.println("\033[33m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
+//                System.out.println("\033[33m"+ Output.get(x).getTipoError()+" -> "+Output.get(x).getDescrip() + "\n");
                 res+=teA;
               // TOut.setText(o);
             }
@@ -1370,7 +1370,7 @@ public final class Main extends javax.swing.JFrame {
                 if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro())){
                     System.out.println(i+" "+r.getRegistro());
                     
-                    linea = Integer.toHexString(cntln).toUpperCase();
+                    linea = Integer.toHexString(cntln*16).toUpperCase();
                     if(cadena.length()==32){
                         conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena+"\n";
                         text+=conteo;
@@ -1382,7 +1382,7 @@ public final class Main extends javax.swing.JFrame {
                      }
                     cnt = cadena.length()/2;
                     conteo= Integer.toHexString(cnt).toUpperCase();
-                    linea = Integer.toHexString(cntln).toUpperCase(); 
+                    linea = Integer.toHexString(cntln*16).toUpperCase(); 
                      if(ListaSimbolos==i){
                          if(conteo.length()==1) eByte = "0"; else eByte = "";
                          
