@@ -174,7 +174,7 @@ public final class Main extends javax.swing.JFrame {
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(60, 60, 60))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addComponent(TA1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(TA1, javax.swing.GroupLayout.PREFERRED_SIZE, 431, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(TA2, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -1349,9 +1349,8 @@ public final class Main extends javax.swing.JFrame {
         String conteo = "0000";
         String cadena="0128";
         String linea="0000";
-        String eByte="00";
-        String eByte1="00";
         String text="";
+        String aux="";
         int cnt = 0;
         int cntln = 0;
         System.out.println(Regi.size());
@@ -1368,6 +1367,32 @@ public final class Main extends javax.swing.JFrame {
         for(int i =0;i < Simbo.size(); i++){
             for(Registro r: Codigos){
                 if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro())){
+                    aux = r.getCodigo();
+                    
+                    if(i<Simbo.size()-1){
+                    if((Simbo.get(i).getIde()).matches("TRIS(A|B)")&& !Simbo.get(i+1).getIde().isEmpty()){
+                        if((Simbo.get(i+1).getIde()).matches("(PORT(A|B)([.]([0-7])))")){
+                            r.setCodigo(r.getCodigo()+"8312");
+                        }
+                    }
+                    }
+                    if(i>0){
+                    if((Simbo.get(i).getIde()).matches("(PORT(A|B))")&&!Simbo.get(i-1).getIde().isEmpty()){
+                        if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")){
+                            String result = r.getCodigo().substring(4);
+                            String result0 = r.getCodigo().substring(0,4);
+                            int t = r.getCodigo().length();
+                            r.setCodigo(t<=4?"8312"+r.getCodigo():result0+"8312"+result); 
+                        }
+                    }
+                    if((Simbo.get(i).getIde()).matches("(TRIS(A|B))")&&!Simbo.get(i-1).getIde().isEmpty()){
+                        if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")){
+                            String[] s = r.getCodigo().split("8316");
+                            r.setCodigo(s.length<1?s[0]:s[0].concat(s[1])); 
+                        }
+                    }
+                    }
+                    
                     System.out.println(i+" "+r.getRegistro());
                     
                     linea = Integer.toHexString(cntln*16).toUpperCase();
@@ -1383,15 +1408,13 @@ public final class Main extends javax.swing.JFrame {
                     cnt = cadena.length()/2;
                     conteo= Integer.toHexString(cnt).toUpperCase();
                     linea = Integer.toHexString(cntln*16).toUpperCase(); 
-                     if(ListaSimbolos==i){
-                         if(conteo.length()==1) eByte = "0"; else eByte = "";
-                         
+                     if(ListaSimbolos==i){                         
                         conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena;
                         if(salto){
                             text+=conteo;                        
                         }else text=conteo;
                     }
-
+                        r.setCodigo(aux);
                 }
             }
         }
@@ -1435,7 +1458,6 @@ public final class Main extends javax.swing.JFrame {
                                 }                          
                             }
                         }
-                            //System.out.println(r.getRegistro()+"="+s.getDecla()+"->" + r.getCodigo()+re.getLexema()+"->"+r.getRegistro().hashCode()+" "+r.getCodigo().hashCode());
                         }
                     }
                 }
