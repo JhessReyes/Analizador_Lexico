@@ -1,2 +1,2 @@
-TRISA=0;
-PORTA =0;
+Device 16F628A;
+

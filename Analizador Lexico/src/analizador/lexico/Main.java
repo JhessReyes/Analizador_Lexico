@@ -711,7 +711,7 @@ public final class Main extends javax.swing.JFrame {
                     Declarado.add("");              
             }
             
-            if(!Simbo.get(i).getDecla().isBlank()||Simbo.get(i).getTipo().matches("programa|Device")){
+            if(!Simbo.get(i).getDecla().isBlank()||Simbo.get(i).getTipo().matches("programa|Device|END")){
                     Inicializado.add(Simbo.get(i).getIde());
             } 
         }
@@ -1184,7 +1184,10 @@ public final class Main extends javax.swing.JFrame {
         for(int x=0;x<Separador.size();x++) {
                 WordR(x);
                 if(WR!=true){
-                    if(Devices(x)){
+                if(Separador.get(x).matches("END")){
+                    Lexemas.add("< "+Separador.get(x)+" , "+"END >");
+                    TabSimb(x);
+                }else if(Devices(x)){
                     Lexemas.add("< "+Separador.get(x)+" , "+"Devices >");
                     TabSimb(x);
                 }else if(PORT(Separador.get(x))){
@@ -1231,7 +1234,11 @@ public final class Main extends javax.swing.JFrame {
             }else if(ide(x).equals("String")){STATIC+=Declaradoen(x).length(); dimension = Declaradoen(x).length();
             }else if(ide(x).isBlank() && PORT(Separador.get(x))){ P="ASM"; STATIC+=1;}
             Simbo.add(new Simbolos(Separador.get(x),"STATIC+"+(STATIC),P,Declaradoen(x),dimension,sp));            
-        } else if(ide(x).equals("")&&x<Separador.size()&&Separador.get(x+1).equals(";"));
+        } else if(ide(x).equals("")&&x<Separador.size()&&Separador.get(x+1).equals(";")){
+            if(Separador.get(x).matches("END")){
+                Simbo.add(new Simbolos(Separador.get(x),"STATIC+"+(0),"END","",0,sp));   
+                }
+            }
             //JOptionPane.showMessageDialog(null,"El Identificador \""+Separador.get(x)+"\" NO ES UNA DECLARACIÓN","ERROR",0); 
             //IDE_error.add(new Simbolos(Separador.get(x),"NULL","NULL","NULL",0,sp));                
     }
@@ -1330,6 +1337,9 @@ public final class Main extends javax.swing.JFrame {
             for(Tablas t: Reg){
                 if(t.getToken().contentEquals(s.getTipo()+s.getIde())){
                     codigo+=":"+t.getLexema()+"\n";
+                }
+                else if(t.getToken().contentEquals(s.getTipo()+".")){
+                    codigo+=":"+t.getLexema();
                 }                
             }
         }
@@ -1339,7 +1349,7 @@ public final class Main extends javax.swing.JFrame {
 //                codigo+=":02400E00223F4F\n";        
 //            } 
 //          }
-       codigo+=":00000001FF";
+//       codigo+=":00000001FF";
        guardar(codigo,HEX);
     }
     
@@ -1349,7 +1359,7 @@ public final class Main extends javax.swing.JFrame {
         String conteo = "0000";
         String cadena="0128";
         String linea="0000";
-        String text="";
+        String text=":020000000128";
         String aux="";
         int cnt = 0;
         int cntln = 0;
@@ -1369,14 +1379,14 @@ public final class Main extends javax.swing.JFrame {
                 if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro())){
                     aux = r.getCodigo();
                     
-                    if(i<Simbo.size()-1){
+                    if(i<Simbo.size()-1&&!r.getCodigo().isEmpty()){
                     if((Simbo.get(i).getIde()).matches("TRIS(A|B)")&& !Simbo.get(i+1).getIde().isEmpty()){
                         if((Simbo.get(i+1).getIde()).matches("(PORT(A|B)([.]([0-7])))")){
                             r.setCodigo(r.getCodigo()+"8312");
                         }
                     }
                     }
-                    if(i>0){
+                    if(i>0&&!r.getCodigo().isEmpty()){
                     if((Simbo.get(i).getIde()).matches("(PORT(A|B))")&&!Simbo.get(i-1).getIde().isEmpty()){
                         if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")){
                             String result = r.getCodigo().substring(4);
@@ -1386,7 +1396,7 @@ public final class Main extends javax.swing.JFrame {
                         }
                     }
                     if((Simbo.get(i).getIde()).matches("(TRIS(A|B))")&&!Simbo.get(i-1).getIde().isEmpty()){
-                        if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")){
+                        if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")&&!r.getCodigo().isEmpty()){
                             String[] s = r.getCodigo().split("8316");
                             r.setCodigo(s.length<1?s[0]:s[0].concat(s[1])); 
                         }
