@@ -1139,6 +1139,16 @@ public final class Main extends javax.swing.JFrame {
     return status;
     }
     
+    public boolean END(int x){
+        boolean st= false;
+        if(Separador.size()>0&&x>0){
+            if(Separador.get(x-1).contentEquals("END")){
+                st=true;
+            }
+        }
+    return st;
+    }
+    
     public boolean PORT(String lexema) {
     String regexIde = "(PORT(A|B)([.]([0-7]))?)|(TRIS(A|B))"; //EXPRESION REGULAR PARA PUERTOS
     return lexema.matches(regexIde);
@@ -1184,10 +1194,11 @@ public final class Main extends javax.swing.JFrame {
         for(int x=0;x<Separador.size();x++) {
                 WordR(x);
                 if(WR!=true){
-                if(Separador.get(x).matches("END")){
-                    Lexemas.add("< "+Separador.get(x)+" , "+"END >");
-                    TabSimb(x);
-                }else if(Devices(x)){
+//                if(Separador.get(x).matches("END")){
+//                    Lexemas.add("< "+Separador.get(x)+" , "+"END >");
+//                    Simbo.add(new Simbolos(Separador.get(x),"STATIC+0","END","",0,sp));       
+//                }else 
+                    if(Devices(x)){
                     Lexemas.add("< "+Separador.get(x)+" , "+"Devices >");
                     TabSimb(x);
                 }else if(PORT(Separador.get(x))){
@@ -1232,12 +1243,14 @@ public final class Main extends javax.swing.JFrame {
             }else if(ide(x).equals("char")){ {STATIC+=1; dimension = Declaradoen(x).length()-2;}
             }else if(ide(x).equals("double")){ STATIC+=8;
             }else if(ide(x).equals("String")){STATIC+=Declaradoen(x).length(); dimension = Declaradoen(x).length();
-            }else if(ide(x).isBlank() && PORT(Separador.get(x))){ P="ASM"; STATIC+=1;}
+            }else if(ide(x).isBlank() && PORT(Separador.get(x))){ P="ASM"; STATIC+=1;}  
+//            }else if(ide(x).isBlank() && Separador.get(x).matches("END")){ P="END"; STATIC+=1;}
             Simbo.add(new Simbolos(Separador.get(x),"STATIC+"+(STATIC),P,Declaradoen(x),dimension,sp));            
+                 
         } else if(ide(x).equals("")&&x<Separador.size()&&Separador.get(x+1).equals(";")){
-            if(Separador.get(x).matches("END")){
-                Simbo.add(new Simbolos(Separador.get(x),"STATIC+"+(0),"END","",0,sp));   
-                }
+//            if(Separador.get(x).matches("END")){
+//                Simbo.add(new Simbolos(Separador.get(x),"STATIC+"+(0),"END","",0,sp));   
+//                }
             }
             //JOptionPane.showMessageDialog(null,"El Identificador \""+Separador.get(x)+"\" NO ES UNA DECLARACIÓN","ERROR",0); 
             //IDE_error.add(new Simbolos(Separador.get(x),"NULL","NULL","NULL",0,sp));                
@@ -1286,8 +1299,14 @@ public final class Main extends javax.swing.JFrame {
     public void WordR(int i){        
         for(Tablas tb: Lista){
          if(Separador.get(i).equals(tb.getToken())){
+                if(Separador.get(i).matches("END")){
+                    Lexemas.add("< "+Separador.get(i)+" , "+"END >");
+                    Simbo.add(new Simbolos(Separador.get(i),"STATIC+0","END","",0,sp));       
+                    
+                }else {
                 Lexemas.add("< "+Separador.get(i)+" , "+tb.getLexema()+" >");
-                WR=true; break;
+                WR=true; break;                    
+                }
             }else WR = false;  
         }
         
@@ -1333,6 +1352,7 @@ public final class Main extends javax.swing.JFrame {
         String codigo="";  
         HEX = new File(nombre+".HEX");
         codigo+=ArchivoHEX();
+        if(ArchivoHEX().equals("\n")) codigo=":020000000128D5\n";
         for(Simbolos s:Simbo){
             for(Tablas t: Reg){
                 if(t.getToken().contentEquals(s.getTipo()+s.getIde())){
@@ -1343,13 +1363,6 @@ public final class Main extends javax.swing.JFrame {
                 }                
             }
         }
-//          if(Simbo.contains("Device")){
-//            int pos = Simbo.indexOf("Device");
-//            if(Simbo.get(pos).getIde().contentEquals("16F628A")){
-//                codigo+=":02400E00223F4F\n";        
-//            } 
-//          }
-//       codigo+=":00000001FF";
        guardar(codigo,HEX);
     }
     
@@ -1359,26 +1372,30 @@ public final class Main extends javax.swing.JFrame {
         String conteo = "0000";
         String cadena="0128";
         String linea="0000";
-        String text=":020000000128";
+        String text="";
         String aux="";
         int cnt = 0;
         int cntln = 0;
-        System.out.println(Regi.size());
-        System.out.println(Simbo.size());
         
-        for(int i =0;i < Regi.size(); i++){
-            System.out.println(i+" -> "+Regi.get(i).getRegistro());
-
-        }
+//        for(int i =0;i < Regi.size(); i++){
+//            System.out.println(i+" -> "+Regi.get(i).getRegistro());
+//        }
         
+        int cntInstrucciones=0;    
+        for(Simbolos s: Simbo)
+         for(Registro r: Codigos){
+                if((s.getDecla()+s.getIde()).contentEquals(r.getRegistro())){
+                    cntInstrucciones++;
+                }
+         }
         boolean salto=false;
-        int ListaSimbolos = Simbo.size()-1;
-        System.out.println(Codigos.size()+"-11");
+        int registros=0;
+     //   System.out.println(Codigos.size()+"-11");
         for(int i =0;i < Simbo.size(); i++){
             for(Registro r: Codigos){
                 if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro())){
                     aux = r.getCodigo();
-                    
+                    registros++;
                     if(i<Simbo.size()-1&&!r.getCodigo().isEmpty()){
                     if((Simbo.get(i).getIde()).matches("TRIS(A|B)")&& !Simbo.get(i+1).getIde().isEmpty()){
                         if((Simbo.get(i+1).getIde()).matches("(PORT(A|B)([.]([0-7])))")){
@@ -1403,11 +1420,10 @@ public final class Main extends javax.swing.JFrame {
                     }
                     }
                     
-                    System.out.println(i+" "+r.getRegistro());
-                    
                     linea = Integer.toHexString(cntln*16).toUpperCase();
                     if(cadena.length()==32){
-                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena+"\n";
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                                +linea+"00"+cadena+Sumador(conteo,linea,cadena)+"\n";
                         text+=conteo;
                         cadena=r.getCodigo();
                         cntln++;
@@ -1418,8 +1434,9 @@ public final class Main extends javax.swing.JFrame {
                     cnt = cadena.length()/2;
                     conteo= Integer.toHexString(cnt).toUpperCase();
                     linea = Integer.toHexString(cntln*16).toUpperCase(); 
-                     if(ListaSimbolos==i){                         
-                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")+linea+"00"+cadena;
+                     if(cntInstrucciones==registros){                         
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                                +linea+"00"+cadena+Sumador(conteo,linea,cadena);
                         if(salto){
                             text+=conteo;                        
                         }else text=conteo;
@@ -1430,6 +1447,22 @@ public final class Main extends javax.swing.JFrame {
         }
         //if(salto==false) text+="\n";
         return text+"\n";
+    }
+    
+        //Este metodo suma los valores en decimal de cada linea generada en el HEX
+    public String Sumador(String conteo, String linea, String datos){
+        int Suma = Integer.parseInt(conteo,16)+ Integer.parseInt(linea,16);
+        for(int x=0;x<datos.length();x=x+2){
+            String hex = datos.substring(x, x+2);
+            Suma+= Integer.parseInt(hex,16);
+            System.out.println(hex);
+        }
+        System.out.println(Suma+" - "+Integer.toHexString(Suma).toUpperCase());
+        Suma=(256-Suma);
+        while(Suma<0){ //Mientras sea negativo entonces se sumaran 256
+            Suma+=256;
+        }        
+       return Integer.toHexString(Suma).toUpperCase();
     }
     
     ArrayList<Registro> Codigos;

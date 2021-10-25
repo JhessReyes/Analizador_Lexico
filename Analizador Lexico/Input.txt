@@ -1,2 +1,4 @@
 Device 16F628A;
-
+TRISB=0;
+PORTB=1;
+END;
