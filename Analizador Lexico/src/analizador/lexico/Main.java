@@ -1376,7 +1376,8 @@ public final class Main extends javax.swing.JFrame {
         }
        guardar(codigo,HEX);
     }
-    
+
+    int cntBit;
     ArrayList<Registro> Tags;
     public String ArchivoHEX(){
         Tags= new ArrayList<>();
@@ -1404,24 +1405,14 @@ public final class Main extends javax.swing.JFrame {
         }
         boolean salto=false;
         int registros=0;
-        int cntBit;
+        cntBit=0;
         int Nreg=40;
+        int despues=0;
      //   System.out.println(Codigos.size()+"-11");
         for(int i =0;i < Simbo.size(); i++){
+
             for(Registro r: Codigos){                
-                cntBit = (All.length()/4);
-                if(Simbo.get(i).getTipo().contentEquals("TAG")){
-                    if(cntBit==255){
-                        cntBit=1;
-                        Nreg++;
-                    }
-                    String HexCntBit = Integer.toHexString(cntBit).toUpperCase();
-                    String HexNreg = Integer.toHexString(Nreg).toUpperCase();
-                    if(ArrayListDatosSinRepetir(Tags,true,Simbo.get(i).getIde())){
-                        Tags.add(new Registro(Simbo.get(i).getIde(),
-                            (HexCntBit.length()<=1?"0":"")+HexCntBit+(HexNreg.length()<=1?"0":"")+HexNreg));
-                    }     
-                }
+
                 
 
                 if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro()) ){
@@ -1471,6 +1462,115 @@ public final class Main extends javax.swing.JFrame {
             }
             
             if(Simbo.get(i).getTipo().matches("GOTO")){
+                
+                for(Registro tags: Tags){
+                    if(Simbo.get(i).getIde().contains(tags.getRegistro())){
+                        if(cadena.length()==32){
+                            conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                                    +linea+"00"+cadena+Sumador(conteo,linea,cadena)+"\n";
+                            text+=conteo;
+                            cadena=tags.getCodigo();
+                            cntln++;
+                            salto=true;
+                        }else{
+                         cadena+=tags.getCodigo();
+                        }
+                        All+=tags.getCodigo();
+                        break;
+                    }else despues++;
+                }
+            }
+                cntBit = (All.length()/4)+despues;
+                if(Simbo.get(i).getTipo().contentEquals("TAG")){
+                    if(cntBit==255){
+                        cntBit=1;
+                        Nreg++;
+                    }
+                    String HexCntBit = Integer.toHexString(cntBit).toUpperCase();
+                    String HexNreg = Integer.toHexString(Nreg).toUpperCase();
+                    if(ArrayListDatosSinRepetir(Tags,true,Simbo.get(i).getIde())){
+                        Tags.add(new Registro(Simbo.get(i).getIde(),
+                            (HexCntBit.length()<=1?"0":"")+HexCntBit+(HexNreg.length()<=1?"0":"")+HexNreg));
+                    }     
+                }
+            
+            cnt = cadena.length()/2;
+            conteo= Integer.toHexString(cnt).toUpperCase();
+            linea = Integer.toHexString(cntln*16).toUpperCase(); 
+             if(Simbo.get(i).getTipo().equals("END")){                         
+                conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                        +linea+"00"+cadena+Sumador(conteo,linea,cadena);
+                if(salto){
+                    text+=conteo;                        
+                }else text=conteo;
+            }            
+        }
+                for(int i =0;i < Tags.size(); i++){
+            System.out.println(i+" -> "+Tags.get(i).getRegistro()+" "+Tags.get(i).getCodigo());
+        }
+        
+        conteo = "0000";
+        cadena="0128";
+        linea="0000";
+        text="";
+        aux="";
+        All="0128";
+        cnt = 0;
+        cntln = 0;
+        cntBit=0;
+        for(int i =0;i < Simbo.size(); i++){
+            for(Registro r: Codigos){                
+
+
+                
+
+                if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro()) ){
+                    aux = r.getCodigo();
+                    registros++;
+                    int next=1; int ant=1;
+                    if(!Simbo.get(i+1).getIde().isEmpty()&&Simbo.get(i+1).getTipo().equals("TAG")) next=2;
+                    if(i<Simbo.size()-1&&!r.getCodigo().isEmpty()){
+                    if((Simbo.get(i).getIde()).matches("TRIS(A|B)")&& !Simbo.get(i+next).getIde().isEmpty()){
+                        if((Simbo.get(i+next).getIde()).matches("(PORT(A|B)([.]([0-7])))")){
+                            r.setCodigo(r.getCodigo()+"8312");
+                        }
+                    }
+                    }
+                    if(!Simbo.get(i-1).getIde().isEmpty()&&Simbo.get(i-1).getTipo().equals("TAG")) ant=2;
+                    if(i>0&&!r.getCodigo().isEmpty()){
+                    if((Simbo.get(i).getIde()).matches("(PORT(A|B))")&&!Simbo.get(i-ant).getIde().isEmpty()){
+                        if((Simbo.get(i-ant).getIde()).matches("(TRIS(A|B))")){
+                            String result = r.getCodigo().substring(4);
+                            String result0 = r.getCodigo().substring(0,4);
+                            int t = r.getCodigo().length();
+                            r.setCodigo(t<=4?"8312"+r.getCodigo():result0+"8312"+result); 
+                        }
+                    }
+                    if((Simbo.get(i).getIde()).matches("(TRIS(A|B))")&&!Simbo.get(i-ant).getIde().isEmpty()){
+                        if((Simbo.get(i-ant).getIde()).matches("(TRIS(A|B))")&&!r.getCodigo().isEmpty()){
+                            String[] s = r.getCodigo().split("8316");
+                            r.setCodigo(s.length<1?s[0]:s[0].concat(s[1])); 
+                        }
+                    }
+                    }
+                    
+                    linea = Integer.toHexString(cntln*16).toUpperCase();
+                    if(cadena.length()==32){
+                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                                +linea+"00"+cadena+Sumador(conteo,linea,cadena)+"\n";
+                        text+=conteo;
+                        cadena=r.getCodigo();
+                        cntln++;
+                        salto=true;
+                     }else{
+                         cadena+=r.getCodigo();
+                     }
+                        All+=r.getCodigo();
+                        r.setCodigo(aux);
+                }  
+            }
+            
+            if(Simbo.get(i).getTipo().matches("GOTO")){
                 for(Registro tags: Tags){
                     if(Simbo.get(i).getIde().contentEquals(tags.getRegistro())){
                         if(cadena.length()==32){
@@ -1488,6 +1588,19 @@ public final class Main extends javax.swing.JFrame {
                     }
                 }
             }
+                cntBit = (All.length()/4);
+                if(Simbo.get(i).getTipo().contentEquals("TAG")){
+                    if(cntBit==255){
+                        cntBit=1;
+                        Nreg++;
+                    }
+                    String HexCntBit = Integer.toHexString(cntBit).toUpperCase();
+                    String HexNreg = Integer.toHexString(Nreg).toUpperCase();
+                    if(ArrayListDatosSinRepetir(Tags,true,Simbo.get(i).getIde())){
+                        Tags.add(new Registro(Simbo.get(i).getIde(),
+                            (HexCntBit.length()<=1?"0":"")+HexCntBit+(HexNreg.length()<=1?"0":"")+HexNreg));
+                    }     
+                } 
             
             cnt = cadena.length()/2;
             conteo= Integer.toHexString(cnt).toUpperCase();
@@ -1498,7 +1611,8 @@ public final class Main extends javax.swing.JFrame {
                 if(salto){
                     text+=conteo;                        
                 }else text=conteo;
-            }            
+            }
+             
         }
                 for(int i =0;i < Tags.size(); i++){
             System.out.println(i+" -> "+Tags.get(i).getRegistro()+" "+Tags.get(i).getCodigo());
