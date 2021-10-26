@@ -852,8 +852,9 @@ public final class Main extends javax.swing.JFrame {
     }
     
     //FUNCION FASE 1: SEPARA PALABRAS DE SIMBOLOS
-    
+
     public void fase1(File arch){
+        cntTAG=0; //contador de tags
         System.out.println("Scope -> "+sp);
         sp=0;
         int numlinea=0;
@@ -1016,7 +1017,6 @@ public final class Main extends javax.swing.JFrame {
 //                    Set<Registro> set = new HashSet<>(Regi);
 //                    Regi.clear();
 //                    Regi.addAll(set);
-                    System.out.println(Reg.size()+ " -");
                     for(Tablas re: Reg){
                         if(!RegNoR.isEmpty()){
                             for(Registro r: Regi){
@@ -1037,7 +1037,6 @@ public final class Main extends javax.swing.JFrame {
                             }                            
                         }else{
                             String mat = "PORTA[.][0-7]";
-                                System.out.println(Separador.get(i-1));
                                 if(Separador.get(i-1).matches(mat)){
                                     if(re.getToken().contentEquals("A."+(Integer.valueOf(Separador.get(i+1))%2))){
                                         Regi.add(new Registro(Separador.get(i-1),re.getLexema()));
@@ -1149,6 +1148,10 @@ public final class Main extends javax.swing.JFrame {
     return st;
     }
     
+    public boolean TAGs(String Lexema){
+        String regexTgs = "([a-zA-Z]+[0-9]*?)[:]"; //EXPRESION REGULAR PARA TAGs
+        return Lexema.matches(regexTgs);
+    }
     public boolean PORT(String lexema) {
     String regexIde = "(PORT(A|B)([.]([0-7]))?)|(TRIS(A|B))"; //EXPRESION REGULAR PARA PUERTOS
     return lexema.matches(regexIde);
@@ -1198,7 +1201,7 @@ public final class Main extends javax.swing.JFrame {
 //                    Lexemas.add("< "+Separador.get(x)+" , "+"END >");
 //                    Simbo.add(new Simbolos(Separador.get(x),"STATIC+0","END","",0,sp));       
 //                }else 
-                    if(Devices(x)){
+                if(Devices(x)){
                     Lexemas.add("< "+Separador.get(x)+" , "+"Devices >");
                     TabSimb(x);
                 }else if(PORT(Separador.get(x))){
@@ -1207,6 +1210,7 @@ public final class Main extends javax.swing.JFrame {
                 }else if(Identificador(Separador.get(x))){
                     Lexemas.add("< "+Separador.get(x)+" , "+"ID >");
                     TabSimb(x);
+                    TAGs(x);
                 }else if(Numero(Separador.get(x))){
                     Lexemas.add("< "+Separador.get(x)+" , "+"INT >"); 
                 }else if(Double(Separador.get(x))){
@@ -1255,7 +1259,14 @@ public final class Main extends javax.swing.JFrame {
             //JOptionPane.showMessageDialog(null,"El Identificador \""+Separador.get(x)+"\" NO ES UNA DECLARACIÓN","ERROR",0); 
             //IDE_error.add(new Simbolos(Separador.get(x),"NULL","NULL","NULL",0,sp));                
     }
-    
+
+    int cntTAG;
+    public void TAGs(int x){
+        if(!Separador.get(x+1).isEmpty()&&Separador.get(x+1).equals(":")){
+            Simbo.add(new Simbolos(Separador.get(x),"STATIC+0","TAG","",0,sp));
+            cntTAG++;
+        }       
+    }
     /*
                 int dimension=0;
             String P = ide(x);
@@ -1366,14 +1377,16 @@ public final class Main extends javax.swing.JFrame {
        guardar(codigo,HEX);
     }
     
-    
+    ArrayList<Registro> Tags;
     public String ArchivoHEX(){
+        Tags= new ArrayList<>();
         GeneradorCodigoPuertos();
         String conteo = "0000";
         String cadena="0128";
         String linea="0000";
         String text="";
         String aux="";
+        String All="0128";
         int cnt = 0;
         int cntln = 0;
         
@@ -1382,38 +1395,59 @@ public final class Main extends javax.swing.JFrame {
 //        }
         
         int cntInstrucciones=0;    
-        for(Simbolos s: Simbo)
+        for(Simbolos s: Simbo){
          for(Registro r: Codigos){
                 if((s.getDecla()+s.getIde()).contentEquals(r.getRegistro())){
                     cntInstrucciones++;
                 }
-         }
+            }
+        }
         boolean salto=false;
         int registros=0;
+        int cntBit;
+        int Nreg=40;
      //   System.out.println(Codigos.size()+"-11");
         for(int i =0;i < Simbo.size(); i++){
-            for(Registro r: Codigos){
-                if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro())){
+            for(Registro r: Codigos){                
+                cntBit = (All.length()/4);
+                if(Simbo.get(i).getTipo().contentEquals("TAG")){
+                    if(cntBit==255){
+                        cntBit=1;
+                        Nreg++;
+                    }
+                    String HexCntBit = Integer.toHexString(cntBit).toUpperCase();
+                    String HexNreg = Integer.toHexString(Nreg).toUpperCase();
+                    if(ArrayListDatosSinRepetir(Tags,true,Simbo.get(i).getIde())){
+                        Tags.add(new Registro(Simbo.get(i).getIde(),
+                            (HexCntBit.length()<=1?"0":"")+HexCntBit+(HexNreg.length()<=1?"0":"")+HexNreg));
+                    }     
+                }
+                
+
+                if((Simbo.get(i).getDecla()+Simbo.get(i).getIde()).contentEquals(r.getRegistro()) ){
                     aux = r.getCodigo();
                     registros++;
+                    int next=1; int ant=1;
+                    if(!Simbo.get(i+1).getIde().isEmpty()&&Simbo.get(i+1).getTipo().equals("TAG")) next=2;
                     if(i<Simbo.size()-1&&!r.getCodigo().isEmpty()){
-                    if((Simbo.get(i).getIde()).matches("TRIS(A|B)")&& !Simbo.get(i+1).getIde().isEmpty()){
-                        if((Simbo.get(i+1).getIde()).matches("(PORT(A|B)([.]([0-7])))")){
+                    if((Simbo.get(i).getIde()).matches("TRIS(A|B)")&& !Simbo.get(i+next).getIde().isEmpty()){
+                        if((Simbo.get(i+next).getIde()).matches("(PORT(A|B)([.]([0-7])))")){
                             r.setCodigo(r.getCodigo()+"8312");
                         }
                     }
                     }
+                    if(!Simbo.get(i-1).getIde().isEmpty()&&Simbo.get(i-1).getTipo().equals("TAG")) ant=2;
                     if(i>0&&!r.getCodigo().isEmpty()){
-                    if((Simbo.get(i).getIde()).matches("(PORT(A|B))")&&!Simbo.get(i-1).getIde().isEmpty()){
-                        if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")){
+                    if((Simbo.get(i).getIde()).matches("(PORT(A|B))")&&!Simbo.get(i-ant).getIde().isEmpty()){
+                        if((Simbo.get(i-ant).getIde()).matches("(TRIS(A|B))")){
                             String result = r.getCodigo().substring(4);
                             String result0 = r.getCodigo().substring(0,4);
                             int t = r.getCodigo().length();
                             r.setCodigo(t<=4?"8312"+r.getCodigo():result0+"8312"+result); 
                         }
                     }
-                    if((Simbo.get(i).getIde()).matches("(TRIS(A|B))")&&!Simbo.get(i-1).getIde().isEmpty()){
-                        if((Simbo.get(i-1).getIde()).matches("(TRIS(A|B))")&&!r.getCodigo().isEmpty()){
+                    if((Simbo.get(i).getIde()).matches("(TRIS(A|B))")&&!Simbo.get(i-ant).getIde().isEmpty()){
+                        if((Simbo.get(i-ant).getIde()).matches("(TRIS(A|B))")&&!r.getCodigo().isEmpty()){
                             String[] s = r.getCodigo().split("8316");
                             r.setCodigo(s.length<1?s[0]:s[0].concat(s[1])); 
                         }
@@ -1431,38 +1465,95 @@ public final class Main extends javax.swing.JFrame {
                      }else{
                          cadena+=r.getCodigo();
                      }
-                    cnt = cadena.length()/2;
-                    conteo= Integer.toHexString(cnt).toUpperCase();
-                    linea = Integer.toHexString(cntln*16).toUpperCase(); 
-                     if(cntInstrucciones==registros){                         
-                        conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
-                                +linea+"00"+cadena+Sumador(conteo,linea,cadena);
-                        if(salto){
-                            text+=conteo;                        
-                        }else text=conteo;
-                    }
+                        All+=r.getCodigo();
                         r.setCodigo(aux);
                 }
             }
+            
+            if(Simbo.get(i).getTipo().matches("GOTO")){
+                for(Registro tags: Tags){
+                    if(Simbo.get(i).getIde().contentEquals(tags.getRegistro())){
+                        if(cadena.length()==32){
+                            conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                                    +linea+"00"+cadena+Sumador(conteo,linea,cadena)+"\n";
+                            text+=conteo;
+                            cadena=tags.getCodigo();
+                            cntln++;
+                            salto=true;
+                        }else{
+                         cadena+=tags.getCodigo();
+                        }
+                        All+=tags.getCodigo();
+                        break;
+                    }
+                }
+            }
+            
+            cnt = cadena.length()/2;
+            conteo= Integer.toHexString(cnt).toUpperCase();
+            linea = Integer.toHexString(cntln*16).toUpperCase(); 
+             if(Simbo.get(i).getTipo().equals("END")){                         
+                conteo=":"+(conteo.length()<=1?"0":"")+conteo+"00"+(linea.length()<=1?"0":"")
+                        +linea+"00"+cadena+Sumador(conteo,linea,cadena);
+                if(salto){
+                    text+=conteo;                        
+                }else text=conteo;
+            }            
         }
+                for(int i =0;i < Tags.size(); i++){
+            System.out.println(i+" -> "+Tags.get(i).getRegistro()+" "+Tags.get(i).getCodigo());
+        }
+        
         //if(salto==false) text+="\n";
         return text+"\n";
     }
     
+    //Metodo para no agregar mas datos que esten repedidos
+    ArrayList<String> PrimerCampo;
+    ArrayList<String> SegundoCampo;
+    public boolean ArrayListDatosSinRepetir(ArrayList<Registro> l,boolean campo,String dato){
+        boolean state=true;
+        if(campo=true){
+        PrimerCampo= new ArrayList<>();            
+        }else{
+           SegundoCampo = new ArrayList<>();
+        }
+        if(l.isEmpty()){
+            state=true;
+        }else{
+            for (Registro r : l) {
+                if (campo = true) {
+                    PrimerCampo.add(r.getRegistro());
+                } else {
+                    SegundoCampo.add(r.getCodigo());
+                }
+            }
+        }
+        
+        if(campo==true){
+            if(PrimerCampo.contains(dato)) state = false;
+        }else{
+            if(SegundoCampo.contains(dato)) state = false;
+        }
+        return state;
+    }
+    
         //Este metodo suma los valores en decimal de cada linea generada en el HEX
     public String Sumador(String conteo, String linea, String datos){
+        String res="";
         int Suma = Integer.parseInt(conteo,16)+ Integer.parseInt(linea,16);
         for(int x=0;x<datos.length();x=x+2){
             String hex = datos.substring(x, x+2);
             Suma+= Integer.parseInt(hex,16);
-            System.out.println(hex);
+            //System.out.println(hex);
         }
         System.out.println(Suma+" - "+Integer.toHexString(Suma).toUpperCase());
         Suma=(256-Suma);
         while(Suma<0){ //Mientras sea negativo entonces se sumaran 256
             Suma+=256;
-        }        
-       return Integer.toHexString(Suma).toUpperCase();
+        }
+        res = Integer.toHexString(Suma).toUpperCase();        
+       return (res.length()<=1?"0":"")+res;
     }
     
     ArrayList<Registro> Codigos;
@@ -1507,9 +1598,9 @@ public final class Main extends javax.swing.JFrame {
             }
         }
 
-        for(Registro c:Codigos){
-             System.out.println(c.getRegistro()+"->>"+c.getCodigo());
-        }
+//        for(Registro c:Codigos){
+//             System.out.println(c.getRegistro()+"->>"+c.getCodigo());
+//        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

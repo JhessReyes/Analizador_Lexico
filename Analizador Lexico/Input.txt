@@ -1,4 +1,29 @@
+programa Ejemplo;
 Device 16F628A;
-TRISB=0;
-PORTB=1;
+TRISA = 0;
+PORTB.0=1;
+PORTB.0=1;
+PORTB.0=1;
+a:
+
+PORTB.0=1;
+GOTO a;
+PORTB.1=1;
+
+
+b:
+PORTB.0=1;
+PORTB.1=1;
+GOTO b;
+
+f:
+
+PORTB.0=1;
+GOTO f;
+
+g:
+PORTB.0=1;
+PORTB.1=1;
+GOTO g;
+
 END;

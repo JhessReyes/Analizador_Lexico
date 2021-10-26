@@ -133,13 +133,44 @@ PORTA.4=1;
 PORTA.5=0;
 PORTA.5=1;
 
-programa Ejemp;
+
+programa Ejemplo;
 Device 16F628A;
+TRISA = 0;
+PORTB.0=1;
+a:
+
+PORTB.0=1;
+GOTO a;
+PORTB.1=1;
+
+
+b:
+PORTB.0=1;
+PORTB.1=1;
+GOTO b;
+
+END;
+
+
+
+
+programa Ejemplo;
+Device 16F628A;
+TRISA = 0;
 PORTB.0=1;
 PORTB.0=1;
 PORTB.0=1;
+a:
+
 PORTB.0=1;
+GOTO a;
+PORTB.1=1;
+
+
+b:
 PORTB.0=1;
-PORTB.0=1;
-PORTB.0=1;
-PORTB.0=1;
+PORTB.1=1;
+GOTO b;
+
+END;
